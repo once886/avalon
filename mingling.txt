@@ -1,0 +1,118 @@
+﻿docker-machine start default
+docker-machine env default | Invoke-Expression
+
+docker镜像与容器
+    1,列出本地已有的所有镜像
+    docker images
+    REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+    ubuntu              14.04               90d5884b1ee0        5 days ago          188 MB
+    php                 5.6                 f40e9e0f10c8        9 days ago          444.8 MB
+    nginx               latest              6f8d099c3adc        12 days ago         182.7 MB
+    2,拉取镜像
+    docker pull <仓库地址>/<镜像名>:<镜像tag>
+    docker push <IMAGE_ID>：上传image
+    docker rmi <IMAGE_ID>：删除image
+    3,启动容器
+    docker run -it <镜像名>:<镜像tag> /bin/bash
+    docker run -t -i ubuntu:14.04 /bin/bash 
+    -t:在新容器内指定一个伪终端或终端。
+    -i:允许你对容器内的标准输入 (STDIN) 进行交互。
+    该容器不以守护态运行，退出容器即关闭。
+    4,后台守护进程启动
+    docker run -dit <镜像名>:<镜像tag> /bin/bash
+    docker run -dit  training/webapp python app.py
+    -d即是以守护态运行
+    5,自定义端口映射,启动服务
+    宿主机到容器内的端口映射
+    docker run -dit -p <hostPort>:<containerPort> --name <自定义容器名> <镜像名>:<镜像tag> /bin/bash && command1 command2
+    docker run -dit -p 5000:5000 training/webapp python app.py
+    -P：默认匹配docker容器的5000端口号到宿主机的49153 to 65535端口
+    -p <HOT_PORT>:<CONTAINER_PORT>：指定端口号
+    --name <自定义容器名>
+    docker run -p 5000:5000：绑定特定端口号（主机的所有网络接口的5000端口均绑定容器的5000端口）
+    docker run -p 127.0.0.1:5000:5000：绑定主机的特定接口的端口号  #访问本机的127.0.0.1:5000就能访问到容器的5000
+    docker run -d -p 127.0.0.1:5000:5000/udp training/webapp python app.py：绑定udp端口号
+    启动tomcat
+    docker run -dit -p <hostPort>:<containerPort> --name <自定义容器名> <镜像名>:<镜像tag> /bin/bash && <tomcat启动命令>
+    启动多个进程，使用&&连接多个启动命令即可
+    6,查看容器进程
+    docker ps   #查看运行的容器
+    docker ps -a   #查看所有的容器
+    7,快速查看映射的端口号
+    docker port (ID或者名字)
+    得知容器的某个确定端口映射到宿主机的端口号
+    ubuntu@data3:~$ docker port bd6eecdd6b38
+    80/tcp -> 0.0.0.0:8080
+    8,查看日志
+    docker logs [ID或者名字] 可以查看容器内部的标准输出
+    docker logs -f 7a38a1ad55c6
+    -f:让 dokcer logs 像使用 tail -f 一样来输出容器内部的标准输出。
+    9,查看容器内的进程
+    docker top [ID或者名字]   来查看容器内部运行的进程
+    10,查看docker的一些底层信息
+    docker inspect [ID或者名字]
+    docker inspect determined_swanson
+    -f：查找特定信息，如docker inspect -f '{{ .NetworkSettings.IPAddress }}' <container>
+    11,停止，重启，移除
+    docker stop [ID或者名字]
+    docker start [ID或者名字]
+    docker rm [ID或者名字]   #容器必须停掉
+    docker rm `docker ps -a -q`：删除所有容器
+    其他常用命令
+    docker diff <CONTAINER_ID>：查看容器中的变化
+    docker exec -it <CONTAINER> <COMMAND>：在容器里执行命令，并输出结果
+    进入容器
+    不要使用attach
+    docker exec -it  <names> "/bin/bash"
+    docker exec -it hungry_brown "/bin/bash"
+Docker容器连接(掠过)现在主要是network了
+    docker run -d -P --name <CONTAINER_NAME> --link <CONTAINER_NAME_TO_LINK>:<ALIAS>
+数据管理
+    -v 宿主机映射到容器内
+
+可以通过 docker COMMAND --help 来查看这些命令的具体用法。
+    attach：依附到一个正在运行的容器中；
+    build：从一个 Dockerfile 创建一个镜像；
+    commit：从一个容器的修改中创建一个新的镜像；
+    cp：在容器和本地宿主系统之间复制文件中；
+    create：创建一个新容器，但并不运行它；
+    diff：检查一个容器内文件系统的修改，包括修改和增加；
+    events：从服务端获取实时的事件；
+    exec：在运行的容器内执行命令；
+    export：导出容器内容为一个 tar 包；
+    history：显示一个镜像的历史信息；
+    images：列出存在的镜像；
+    import：导入一个文件（典型为 tar 包）路径或目录来创建一个本地镜像；
+    info：显示一些相关的系统信息；
+    inspect：显示一个容器的具体配置信息；
+    kill：关闭一个运行中的容器 (包括进程和所有相关资源)；
+    load：从一个 tar 包中加载一个镜像；
+    login：注册或登录到一个 Docker 的仓库服务器；
+    logout：从 Docker 的仓库服务器登出；
+    logs：获取容器的 log 信息；
+    network：管理 Docker 的网络，包括查看、创建、删除、挂载、卸载等；
+    node：管理 swarm 集群中的节点，包括查看、更新、删除、提升/取消管理节点等；
+    pause：暂停一个容器中的所有进程；
+    port：查找一个 nat 到一个私有网口的公共口；
+    ps：列出主机上的容器；
+    pull：从一个Docker的仓库服务器下拉一个镜像或仓库；
+    push：将一个镜像或者仓库推送到一个 Docker 的注册服务器；
+    rename：重命名一个容器；
+    restart：重启一个运行中的容器；
+    rm：删除给定的若干个容器；
+    rmi：删除给定的若干个镜像；
+    run：创建一个新容器，并在其中运行给定命令；
+    save：保存一个镜像为 tar 包文件；
+    search：在 Docker index 中搜索一个镜像；
+    service：管理 Docker 所启动的应用服务，包括创建、更新、删除等；
+    start：启动一个容器；
+    stats：输出（一个或多个）容器的资源使用统计信息；
+    stop：终止一个运行中的容器；
+    swarm：管理 Docker swarm 集群，包括创建、加入、退出、更新等；
+    tag：为一个镜像打标签；
+    top：查看一个容器中的正在运行的进程信息；
+    unpause：将一个容器内所有的进程从暂停状态中恢复；
+    update：更新指定的若干容器的配置信息；
+    version：输出 Docker 的版本信息；
+    volume：管理 Docker volume，包括查看、创建、删除等；
+    wait：阻塞直到一个容器终止，然后输出它的退出符。
